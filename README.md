@@ -1,5 +1,4 @@
 # bible-study-viewer
-A web application for viewing Bible studies written in the format described in https://github.com/jwilkey/bible-study
 
 ## Project setup
 ```
@@ -11,9 +10,19 @@ npm install
 npm run serve
 ```
 
-### Deploy using Github Pages
+### Compiles and minifies for production
 ```
-npm run deploy
+npm run build
+```
+
+### Run your unit tests
+```
+npm run test:unit
+```
+
+### Lints and fixes files
+```
+npm run lint
 ```
 
 ### Customize configuration

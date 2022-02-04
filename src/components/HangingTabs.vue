@@ -18,7 +18,7 @@ export default {
   methods: {
     select (item) {
       this.selected = item
-      this.$emit('input', this.selected)
+      this.$emit('update:modelValue', this.selected)
     }
   },
   mounted () {

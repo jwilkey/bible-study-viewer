@@ -1,10 +1,7 @@
-import Vue from 'vue'
-import Vuex from 'vuex'
+import { createStore } from 'vuex'
 import storeGen from 'vuex-store-gen'
 import VuexPersistence from 'vuex-persist'
-import studyScore from './js/study-score'
-
-Vue.use(Vuex)
+import studyScore from '../js/study-score'
 
 const vuexLocal = new VuexPersistence({
   storage: window.localStorage
@@ -28,7 +25,7 @@ storeOperations.actions.deleteStudy = ({ dispatch, state }, study) => {
   dispatch('setStudies', state.studies)
 }
 
-export default new Vuex.Store({
+export default createStore({
   state,
   ...storeOperations,
   plugins: [vuexLocal.plugin]

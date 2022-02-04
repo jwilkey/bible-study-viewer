@@ -6,11 +6,7 @@
       <text-outline class="textoutline p0-bottom z2" :highlight="highlight" />
       <hanging-tabs :items="observations" v-model="observation" />
 
-      <transition name="fade-in">
-        <persons v-if="O('persons')" :items="study.observe.persons" />
-        <definitions v-if="O('definitions')" :items="study.observe.definitions" />
-        <block-list v-if="isObservationList" :items="study.observe[observation.toLowerCase()]" />
-      </transition>
+      <component :is="componentFor('observation')" :items="observationItems" />
 
       <hr class="border-primary">
 
@@ -22,14 +18,7 @@
       </div>
       <hanging-tabs :items="interpretations" v-model="interpretation" />
 
-      <transition name="fade-in">
-        <block-list v-if="I('titles')" :items="study.interpret.titles" />
-        <block-list v-if="I('points')" :items="study.interpret.points" />
-        <component :is="componentFor(study.interpret.keywords)" v-if="I('keywords')" :items="study.interpret.keywords" />
-        <component :is="componentFor(study.interpret.emotions)" v-if="I('emotions')" :items="study.interpret.emotions" />
-        <unwisdom v-if="I('unwisdom')" :items="unwisdoms" />
-        <expound v-if="I('expound')" :items="expounds" />
-      </transition>
+      <component :is="componentFor('interpretation')" :items="interpretationItems" />
 
       <hr class="border-primary">
 
@@ -42,16 +31,9 @@
       <hanging-tabs :items="applications" v-model="application" />
 
       <transition name="fade-in">
-        <conversation v-if="A('conversation')" :items="conversation" />
-        <div v-if="A('ACTS')" class="content p2">
-          <div v-for="(questions, category) in study.application.ACTS" :key="category">
-            <h3 class="uppercase "><span class="bg-hi p1-h opacity90">{{category}}</span></h3>
-            <div v-for="(q, i) in questions" :key="i" class="card m2-bottom">
-              • {{q}}
-            </div>
-          </div>
+        <div>
+          <component :is="componentFor('application')" :items="applicationItems" />
         </div>
-        <integrity v-if="A('integrity')" :items="integrity" />
       </transition>
     </div>
   </div>
@@ -67,6 +49,7 @@ import Definitions from '@/components/Definitions'
 import Unwisdom from '@/components/Unwisdom'
 import Expound from '@/components/Expound'
 import Conversation from '@/components/Conversation'
+import ActsQuestions from '@/components/ActsQuestions'
 import Integrity from '@/components/Integrity'
 import { mapGetters } from 'vuex'
 
@@ -79,15 +62,16 @@ export default {
       application: 'conversation'
     }
   },
-  components: { Navigation, BlockList, TextOutline, HangingTabs, Persons, Definitions, Unwisdom, Expound, Conversation, Integrity },
+  components: { Navigation, BlockList, TextOutline, HangingTabs, Persons, Definitions, Unwisdom, Expound, Conversation, ActsQuestions, Integrity },
   computed: {
     ...mapGetters(['study', 'text', 'score']),
     observations () {
-      return ['persons', 'people', 'nouns', 'adjectives', 'actions', 'definitions']
+      return Object.keys(this.study.observe)
         .filter(a => this.shouldShow('observe', a))
     },
     interpretations () {
-      return ['titles', 'points', 'keywords', 'emotions', 'unwisdom', 'expound']
+      return Object.keys(this.study.interpret)
+        .filter(a => !['mainPoint'].includes(a))
         .filter(a => this.shouldShow('interpret', a))
     },
     applications () {
@@ -102,9 +86,19 @@ export default {
         : this.study.observe[this.observation]
       return Array.isArray(highlight) ? highlight : []
     },
+    observationItems () {
+      return this.study.observe[this.observation]
+    },
+    interpretationItems () {
+      return this.study.interpret[this.interpretation]
+    },
+    applicationItems () {
+      return this.study.application[this.application]
+    },
     unwisdoms () { return this.getNotes('interpret.unwisdom') },
     expounds () { return this.getNotes('interpret.expound') },
     conversation () { return this.getNotes('application.conversation') },
+    actsQuestions () { return this.getNotes('application.ACTS') },
     integrity () { return this.getNotes('application.integrity') }
   },
   watch: {
@@ -125,10 +119,30 @@ export default {
       return this.study ? this.study[parts[0]][parts[1]] : null
     },
     shouldShow (category, activity) {
-      return this.getNotes(`${category}.${activity}`) !== 'N/A' && ({ ...this.score[category][activity] }).complete
+      return this.getNotes(`${category}.${activity}`) !== 'N/A'
     },
-    componentFor (items) {
-      return Array.isArray(items) ? 'BlockList' : 'Definitions'
+    componentFor (category) {
+      function genericFor (items) {
+        return Array.isArray(items) ? 'BlockList' : 'Definitions'
+      }
+      if (category === 'observation') {
+        return {
+          persons: 'Persons',
+          definitions: 'Definitions'
+        }[this.observation] || genericFor(this.observationItems)
+      } else if (category === 'interpretation') {
+        return {
+          mainPoint: 'div',
+          unwisdom: 'Unwisdom',
+          expound: 'Expound'
+        }[this.interpretation] || genericFor(this.interpretationItems)
+      } else if (category === 'application') {
+        return {
+          conversation: 'Conversation',
+          ACTS: 'ActsQuestions',
+          integrity: 'Integrity'
+        }[this.application] || genericFor(this.applicationItems)
+      }
     }
   }
 }

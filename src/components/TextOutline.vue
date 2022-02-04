@@ -1,24 +1,39 @@
 <template>
   <transition name="fade">
-  <div v-if="text" class="text-outline p2 mono">
-    <div class="v-fill content border-left-tertiary p2-left flex-column">
-      <div class="flex-row">
-        <p class="flex-one primary p1-bottom">{{study.passage}}</p>
-        <a class="tertiary pointer font-2" @click="toggle">{{ show ? '◉' : '○' }}</a>
-      </div>
-      <div class="text-outline-text" :class="{ collapsed: !show }">
+    <div v-if="text" class="text-outline p2 mono">
+      <div class="v-fill content border-left-tertiary p2-left flex-column">
+        <div class="flex-row">
+          <p class="flex-one primary p1-bottom">{{ study.passage }}</p>
+          <a class="tertiary pointer font-2" @click="toggle">{{
+            show ? "◉" : "○"
+          }}</a>
+        </div>
+        <div class="text-outline-text" :class="{ collapsed: !show }">
+          <transition name="fade-in">
+            <p v-if="display" v-html="display" />
+          </transition>
+        </div>
         <transition name="fade-in">
-          <p v-if="display" v-html="display" />
+          <p
+            v-if="show"
+            class="text-right font-2 m2-top tertiary m1-bottom pointer"
+          >
+            <a
+              class="option"
+              @click="toggleVerses"
+              :class="{ active: showVerses }"
+              >V#</a
+            >&nbsp;
+            <a
+              class="option"
+              @click="toggleStructure"
+              :class="{ active: !showPlain }"
+              >⑆</a
+            >
+          </p>
         </transition>
       </div>
-      <transition name="fade-in">
-        <p v-if="show" class="text-right font-2 m2-top tertiary m1-bottom pointer">
-          <a class="option" @click="toggleVerses" :class="{active: showVerses}">V#</a>&nbsp;
-          <a class="option" @click="toggleStructure" :class="{active: !showPlain}">⑆</a>
-        </p>
-      </transition>
     </div>
-  </div>
   </transition>
 </template>
 
@@ -56,9 +71,13 @@ export default {
     toggleVerses () {
       this.showVerses = !this.showVerses
       if (this.showVerses) {
-        this.$el.querySelectorAll('.verse-num').forEach(e => e.classList.remove('hid'))
+        this.$el
+          .querySelectorAll('.verse-num')
+          .forEach((e) => e.classList.remove('hid'))
       } else {
-        this.$el.querySelectorAll('.verse-num').forEach(e => e.classList.add('hid'))
+        this.$el
+          .querySelectorAll('.verse-num')
+          .forEach((e) => e.classList.add('hid'))
       }
     },
     toggleStructure () {
@@ -67,14 +86,23 @@ export default {
     },
     createDisplay () {
       this.display = undefined
-      let text = this.text.replace(/\|?(\d+)\|/g, (a, b) => `<sup class="verse-num">${b}</sup>`)
-      text = text.replace(/(\d+)\u02da/g, (a, b) => `<span class="verse-num">${b} </span>`)
+      let text = this.text.replace(
+        /\|?(\d+)\|/g,
+        (a, b) => `<sup class="verse-num">${b}</sup>`
+      )
+      text = text.replace(
+        /(\d+)\u02da/g,
+        (a, b) => `<span class="verse-num">${b} </span>`
+      )
       text = this.showPlain
         ? text.replace(/\u02D9\r?\n|\r/g, '').replace(/\u0020\u0020+/g, ' ')
         : text.replace(/\u02D9/g, '')
-      const highlight = [ ...this.highlight ]
-      highlight.forEach(h => {
-        text = text.replace(new RegExp(`\\b(${h.split(' = ')[0]})\\b`, 'gi'), `<span class="highlight">$1</span>`)
+      const highlight = [...this.highlight]
+      highlight.forEach((h) => {
+        text = text.replace(
+          new RegExp(`\\b(${h.split(' = ')[0]})\\b`, 'gi'),
+          '<span class="highlight">$1</span>'
+        )
       })
       this.$nextTick(() => {
         this.display = text
@@ -88,7 +116,7 @@ export default {
 @import "../assets/app";
 
 .text-outline {
-  .card{
+  .card {
     @extend .border-primary;
     border-left-color: rgba(var(--primary), 1) !important;
     max-height: 65vh;
@@ -96,8 +124,8 @@ export default {
 }
 
 .verse-num {
-  opacity: .3;
-  transition: opacity .3s;
+  opacity: 0.3;
+  transition: opacity 0.3s;
   &.hid {
     opacity: 0;
   }
@@ -116,11 +144,11 @@ export default {
 }
 .text-outline-text {
   @extend .scrolly;
-  font-family: 'Menlo';
+  font-family: "Menlo";
   font-size: 14px;
   line-height: 130%;
   white-space: pre-wrap;
-  transition: box-shadow .5s;
+  transition: box-shadow 0.5s;
   max-height: 60vh;
   &:not(.collapsed) {
     @extend .flex-one;
@@ -140,7 +168,7 @@ export default {
   @extend .hi;
   @extend .bg-primary3;
   @extend .border-primary;
-  transition: opacity .3s;
+  transition: opacity 0.3s;
   &:not(.active) {
     @extend .opacity50;
   }
